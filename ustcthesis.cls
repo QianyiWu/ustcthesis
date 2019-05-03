@@ -18,7 +18,11 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}[1999/12/01]
 \ProvidesClass{ustcthesis}
-  [2019/01/01 v3.1.03 USTC thesis template]
+  [2019/05/01 v3.1.06 USTC thesis template]
+\RequirePackage{ifxetex}
+\ifxetex\else
+  \ClassError{ustcthesis}{XeLaTeX is required to compile the document}{}
+\fi
 \newif\ifustc@doctor
 \newif\ifustc@master
 \newif\ifustc@bachelor
@@ -71,6 +75,7 @@
 \RequirePackage{unicode-math}
 \RequirePackage{geometry}
 \RequirePackage{graphicx}
+\RequirePackage{fancyhdr}
 \RequirePackage{color}
 \RequirePackage{titletoc}
 \RequirePackage{caption}
@@ -81,6 +86,7 @@
   \PassOptionsToPackage{sort&compress}{natbib}
 \fi
 \RequirePackage{natbib}
+\RequirePackage{notoccite}
 \newcommand\ustc@strifeq{\csname str_if_eq_x:nnTF\endcsname}
 \newcommand\ustc@fontset{\csname g__ctex_fontset_tl\endcsname}
 \ustc@strifeq{\ustc@fontset}{fandol}{
@@ -167,40 +173,26 @@
   nabla      = upright,
   partial    = upright,
 }
-\newif\ifustc@stixtwo
 \newif\ifustc@xitsnew
 \@ifpackagelater{fontspec}{2017/01/20}{
-  \IfFontExistsTF{STIX2Math.otf}{
-    \ustc@stixtwotrue
-  }{}
-  \IfFontExistsTF{XITS-Regular.otf}{
+  \IfFontExistsTF{XITSMath-Regular.otf}{
     \ustc@xitsnewtrue
   }{}
 }{}
-\ifustc@stixtwo
-  \setmathfont[StylisticSet=8]{STIX2Math.otf}
-  \setmathfont[range={scr,bfscr},StylisticSet=1]{STIX2Math.otf}
-  \ifustc@xitsnew
-    \setmathfont[range={\partial,\lbrace,\rbrace}]{XITSMath-Regular.otf}
-  \else
-    \setmathfont[range={\partial,\lbrace,\rbrace}]{xits-math.otf}
-  \fi
+\ifustc@xitsnew
+  \setmathfont[
+    Extension    = .otf,
+    BoldFont     = XITSMath-Bold,
+    StylisticSet = 8,
+  ]{XITSMath-Regular}
+  \setmathfont[range={cal,bfcal},StylisticSet=1]{XITSMath-Regular.otf}
 \else
-  \ifustc@xitsnew
-    \setmathfont[
-      Extension    = .otf,
-      BoldFont     = XITSMath-Bold,
-      StylisticSet = 8,
-    ]{XITSMath-Regular}
-    \setmathfont[range={cal,bfcal},StylisticSet=1]{XITSMath-Regular.otf}
-  \else
-    \setmathfont[
-      Extension    = .otf,
-      BoldFont     = *bold,
-      StylisticSet = 8,
-    ]{xits-math}
-    \setmathfont[range={cal,bfcal},StylisticSet=1]{xits-math.otf}
-  \fi
+  \setmathfont[
+    Extension    = .otf,
+    BoldFont     = *bold,
+    StylisticSet = 8,
+  ]{xits-math}
+  \setmathfont[range={cal,bfcal},StylisticSet=1]{xits-math.otf}
 \fi
 \ustc@strifeq{\ustc@fontset}{mac}{
   \newfontfamily\ustc@circlefont{Songti SC Light}
@@ -313,66 +305,31 @@
   paper      = a4paper,
   vmargin    = 2.54cm,
   hmargin    = 3.17cm,
-  headheight = 0.8cm,
-  headsep    = 0.24cm,
+  headheight = 0.75cm,
+  headsep    = 0.29cm,
   footskip   = 0.79cm,
 }
+\pagestyle{fancy}
+\let\sectionmark\@gobble
+\renewcommand\headrulewidth{0.4\p@}
+\newcommand\ustc@patchcmd{\csname ctex_patch_cmd:Nnn\endcsname}
 \ifustc@graduate
-  \newcommand\ustc@header@font{\fontsize{10.5\bp@}{12\bp@}\selectfont}
+  \newcommand\ustc@hf@font{\fontsize{10.5\bp@}{12\bp@}\selectfont}
   \newcommand\ustc@header{\leftmark}
+  \ustc@patchcmd\chaptermark{\MakeUppercase}{}
+  \ustc@patchcmd\chaptermark{#1}{\ustc@spacetitle{#1}}
 \else
-  \newcommand\ustc@header@font{\fontsize{9\bp@}{12\bp@}\selectfont}
+  \newcommand\ustc@hf@font{\fontsize{9\bp@}{12\bp@}\selectfont}
   \newcommand\ustc@header{\ustc@universityname{}本科毕业论文}
-\fi
-\newcommand\ustc@head{%
-  \vbox to\headheight{%
-    \hfil\ustc@header@font\ustc@header\strut\hfil
-    \hrule\@height 0.4\p@\@width\textwidth
-    \vfil
-  }%
-}
-\newcommand\ustc@foot{\hfil\ustc@header@font\thepage\hfil}
-\def\ps@plain{%
-  \def\@oddhead{\ustc@head}%
-  \def\@oddfoot{\ustc@foot}%
-  \let\@evenhead\@oddhead
-  \let\@evenfoot\@oddfoot
-  \let\@mkboth\markboth
-}
-\ifustc@graduate
-  \@ifclasslater{ctexbook}{2016/09/21}{
-    \def\chaptermark#1{%
-      \markboth{%
-        \CTEXifname{\CTEXthechapter\CTEX@chapter@aftername}{}%
-        \ustc@spacetitle{#1}%
-      }{}%
-    }
-  }{
-    \def\chaptermark#1{%
-      \markboth{%
-        \ifnum \c@secnumdepth >\m@ne
-          \if@mainmatter
-            \ifodd\CTEX@chapter@numbering
-              \CTEXthechapter\CTEX@chapter@aftername
-            \fi
-          \fi
-        \fi
-        \ustc@spacetitle{#1}%
-      }{}%
-    }
-  }
-\else
   \let\chaptermark\@gobble
 \fi
-\let\sectionmark\@gobble
-\pagestyle{plain}
-\def\ps@headings{%
-  \def\@oddhead{\ustc@head}%
-  \let\@evenhead\@oddhead
-  \let\@oddfoot\@empty
-  \let\@evenfoot\@empty
-  \let\@mkboth\markboth
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyhead[C]{\ustc@hf@font\ustc@header}%
+  \fancyfoot[C]{\ustc@hf@font\thepage}%
 }
+\pagestyle{plain}
+\fancypagestyle{headings}{\fancyfoot{}}
 \def\ps@none{}
 \ctexset{chapter/pagestyle=none}
 \def\cleardoublepage{\clearpage\if@twoside \ifodd\c@page\else
@@ -911,7 +868,9 @@
 }{%
   \endlist
 }
-\setlength{\parskip}{0\p@ \@plus .2\p@}
+\sloppy
+\raggedbottom
+\setlength{\parskip}{\z@}
 \let\@afterindentfalse\@afterindenttrue
 \@afterindenttrue
 \urlstyle{same}
@@ -963,21 +922,22 @@
 \setcounter{dbltopnumber}{9}
 \def\fps@figure{htb}
 \def\fps@table{htb}
+\setlength{\floatsep}{6\bp@}
+\setlength{\textfloatsep}{6\bp@}
+\setlength{\intextsep}{6\bp@}
 \DeclareCaptionLabelSeparator{zhspace}{\hspace{\ccwd}}
 \captionsetup{
-  format   = hang,
-  font     = small,
-  labelsep = zhspace,
+  format         = hang,
+  font           = small,
+  labelsep       = zhspace,
+  skip           = 6\bp@,
+  figureposition = bottom,
+  tableposition  = top,
 }
 \ifustc@graduate
   \captionsetup{font+=bf}
 \fi
 \captionsetup[figure]{
-  aboveskip = 6\bp@,
-  belowskip = {12\bp@-\intextsep},
-}
-\captionsetup[table]{
-  aboveskip = 6\bp@,
   belowskip = 6\bp@,
 }
 \newcommand\note[1]{%
@@ -1046,7 +1006,6 @@
   \fi
   \bibliographystyle{ustcthesis-bachelor}
 \fi
-\newcommand\ustc@patchcmd{\csname ctex_patch_cmd:Nnn\endcsname}
 \ustc@patchcmd{\NAT@citexnum}{%
   \@ifnum{\NAT@ctype=\z@}{%
     \if*#2*\else\NAT@cmt#2\fi
@@ -1115,6 +1074,8 @@
     bookmarksopen      = true,
     bookmarksopenlevel = 1,
     linktoc            = all,
+    unicode            = true,
+    psdextra           = true,
   }
   \ifustc@pdf
     \hypersetup{
@@ -1147,6 +1108,9 @@
     \let\\\@empty
     \let\hspace\@gobble
   }
+  \@ifpackagelater{hyperref}{2019/04/27}{}{%
+    \g@addto@macro\psdmapshortnames{\let\mu\textmugreek}%
+  }
   \ifustc@chinese
     \def\equationautorefname~#1\null{公式~(#1)\null}
     \def\footnoteautorefname{脚注}
@@ -1174,6 +1138,7 @@
   \theoremstyle{ustcplain}
   \ifustc@chinese
     \newcommand\ustc@assertionname{断言}
+    \newcommand\ustc@assumptionname{假设}
     \newcommand\ustc@axiomname{公理}
     \newcommand\ustc@corollaryname{推论}
     \newcommand\ustc@definitionname{定义}
@@ -1185,6 +1150,7 @@
     \newcommand\ustc@theoremname{定理}
   \else
     \newcommand\ustc@assertionname{Assertion}
+    \newcommand\ustc@assumptionname{Assumption}
     \newcommand\ustc@axiomname{Axiom}
     \newcommand\ustc@corollaryname{Corollary}
     \newcommand\ustc@definitionname{Definition}
@@ -1195,15 +1161,16 @@
     \newcommand\ustc@remarkname{Remark}
     \newcommand\ustc@theoremname{Theorem}
   \fi
-  \newtheorem{theorem}                {\ustc@theoremname}     [chapter]
-  \newtheorem{assertion}  [theorem]   {\ustc@assertionname}
-  \newtheorem{axiom}      [theorem]   {\ustc@axiomname}
-  \newtheorem{corollary}  [theorem]   {\ustc@corollaryname}
-  \newtheorem{lemma}      [theorem]   {\ustc@lemmaname}
-  \newtheorem{proposition}[theorem]   {\ustc@propositionname}
-  \newtheorem{definition}             {\ustc@definitionname}  [chapter]
-  \newtheorem{example}                {\ustc@examplename}     [chapter]
-  \newtheorem*{remark}                {\ustc@remarkname}
+  \newtheorem{theorem}             {\ustc@theoremname}    [chapter]
+  \newtheorem{assertion}  [theorem]{\ustc@assertionname}
+  \newtheorem{axiom}      [theorem]{\ustc@axiomname}
+  \newtheorem{corollary}  [theorem]{\ustc@corollaryname}
+  \newtheorem{lemma}      [theorem]{\ustc@lemmaname}
+  \newtheorem{proposition}[theorem]{\ustc@propositionname}
+  \newtheorem{assumption}          {\ustc@assumptionname} [chapter]
+  \newtheorem{definition}          {\ustc@definitionname} [chapter]
+  \newtheorem{example}             {\ustc@examplename}    [chapter]
+  \newtheorem*{remark}             {\ustc@remarkname}
   \renewenvironment{proof}[1][\proofname]{\par
     \pushQED{\qed}%
     \normalfont \topsep6\p@\@plus6\p@\relax

@@ -50,7 +50,7 @@ version 2005/12/01 or later.
 %<class>\NeedsTeXFormat{LaTeX2e}[1999/12/01]
 %<class>\ProvidesClass{ustcthesis}
 %<*class>
-  [2019/01/01 v3.1.03 USTC thesis template]
+  [2019/05/01 v3.1.06 USTC thesis template]
 %</class>
 %
 %<*driver>
@@ -76,7 +76,11 @@ version 2005/12/01 or later.
   math-style=ISO,
   bold-style=ISO,
 }
-\setmathfont{STIX2Math.otf}
+\setmathfont[
+  Extension    = .otf,
+  BoldFont     = XITSMath-Bold,
+  StylisticSet = 8,
+]{XITSMath-Regular}
 
 % 定义一些命令用于写文档
 \newcommand\TeXLive{\TeX{} Live}
@@ -299,13 +303,15 @@ version 2005/12/01 or later.
 % \pkg{calc},
 % \pkg{color},
 % \pkg{ctex},
+% \pkg{fancyhdr},
 % \pkg{footmisc},
 % \pkg{geometry},
 % \pkg{graphicx},
-% \pkg{titletoc},
-% \pkg{url},
 % \pkg{natbib},
-% \pkg{unicode-math}。
+% \pkg{notoccite},
+% \pkg{titletoc},
+% \pkg{unicode-math},
+% \pkg{url}。
 %
 % 另外，模板还对其他宏包提供了支持，包括：
 % \pkg{amsmath},
@@ -679,6 +685,14 @@ version 2005/12/01 or later.
 %
 % \subsection{处理选项}
 %
+% 检查编译引擎，要求使用 XeLaTeX。
+%    \begin{macrocode}
+\RequirePackage{ifxetex}
+\ifxetex\else
+  \ClassError{ustcthesis}{XeLaTeX is required to compile the document}{}
+\fi
+%    \end{macrocode}
+%
 % \changes{v3.0.a}{2018/05/16}{更正本科生英文模板的章节格式}
 %    \begin{macrocode}
 \newif\ifustc@doctor
@@ -753,6 +767,7 @@ version 2005/12/01 or later.
 \RequirePackage{unicode-math}
 \RequirePackage{geometry}
 \RequirePackage{graphicx}
+\RequirePackage{fancyhdr}
 \RequirePackage{color}
 \RequirePackage{titletoc}
 \RequirePackage{caption}
@@ -763,6 +778,7 @@ version 2005/12/01 or later.
   \PassOptionsToPackage{sort&compress}{natbib}
 \fi
 \RequirePackage{natbib}
+\RequirePackage{notoccite}
 %    \end{macrocode}
 %
 %
@@ -890,56 +906,33 @@ version 2005/12/01 or later.
 }
 %    \end{macrocode}
 %
-% 优先使用 STIX Two Math 字体，如果找不到则使用 XITS Math。
-% 所以需要检测字体是否存在。
+% 使用 XITS Math 作为数学字体。
 %
 % 注意，\cs{IfFontExistsTF} 是 \pkg{fontspec} 2017/01/20 v2.5c 才提供的；
-% \pkg{stix2-otf} 是 2018-04-13 发布；
 % 而 XITS 字体于 2018-10-03 更改了字体的文件名。
 % \changes{v3.1.01}{2018/10/06}{同步 \pkg{xits} 字体文件名的修改}
+% \changes{v3.1.05}{2019/04/21}{使用 XITS Math 作为数学字体}
 %    \begin{macrocode}
-\newif\ifustc@stixtwo
 \newif\ifustc@xitsnew
 \@ifpackagelater{fontspec}{2017/01/20}{
-  \IfFontExistsTF{STIX2Math.otf}{
-    \ustc@stixtwotrue
-  }{}
-  \IfFontExistsTF{XITS-Regular.otf}{
+  \IfFontExistsTF{XITSMath-Regular.otf}{
     \ustc@xitsnewtrue
   }{}
 }{}
-%    \end{macrocode}
-%
-% 由于 \pkg{fontspec} 的 bug
-% \footnote{\url{https://github.com/wspr/unicode-math/issues/484}}，
-% \cs{scriptstyle} 的变体字母不能正确处理，暂时不要使用 \opt{ss02}。
-%
-% 另外目前版本的 STIX Two Math 的个别符号存在一些问题，所以替换为 XITS Math。
-%    \begin{macrocode}
-\ifustc@stixtwo
-  \setmathfont[StylisticSet=8]{STIX2Math.otf}
-  \setmathfont[range={scr,bfscr},StylisticSet=1]{STIX2Math.otf}
-  \ifustc@xitsnew
-    \setmathfont[range={\partial,\lbrace,\rbrace}]{XITSMath-Regular.otf}
-  \else
-    \setmathfont[range={\partial,\lbrace,\rbrace}]{xits-math.otf}
-  \fi
+\ifustc@xitsnew
+  \setmathfont[
+    Extension    = .otf,
+    BoldFont     = XITSMath-Bold,
+    StylisticSet = 8,
+  ]{XITSMath-Regular}
+  \setmathfont[range={cal,bfcal},StylisticSet=1]{XITSMath-Regular.otf}
 \else
-  \ifustc@xitsnew
-    \setmathfont[
-      Extension    = .otf,
-      BoldFont     = XITSMath-Bold,
-      StylisticSet = 8,
-    ]{XITSMath-Regular}
-    \setmathfont[range={cal,bfcal},StylisticSet=1]{XITSMath-Regular.otf}
-  \else
-    \setmathfont[
-      Extension    = .otf,
-      BoldFont     = *bold,
-      StylisticSet = 8,
-    ]{xits-math}
-    \setmathfont[range={cal,bfcal},StylisticSet=1]{xits-math.otf}
-  \fi
+  \setmathfont[
+    Extension    = .otf,
+    BoldFont     = *bold,
+    StylisticSet = 8,
+  ]{xits-math}
+  \setmathfont[range={cal,bfcal},StylisticSet=1]{xits-math.otf}
 \fi
 %    \end{macrocode}
 %
@@ -1141,95 +1134,63 @@ version 2005/12/01 or later.
   paper      = a4paper,
   vmargin    = 2.54cm,
   hmargin    = 3.17cm,
-  headheight = 0.8cm,
-  headsep    = 0.24cm,
+  headheight = 0.75cm,
+  headsep    = 0.29cm,
   footskip   = 0.79cm,
 }
 %    \end{macrocode}
 %
+% 使用 \pkg{fancy} 需要先调用 |\pagestyle{fancy}| 再修改 \cs{chaptermark} 和
+% \cs{sectionmark}。
+%    \begin{macrocode}
+\pagestyle{fancy}
+\let\sectionmark\@gobble
+\renewcommand\headrulewidth{0.4\p@}
+%    \end{macrocode}
+%
+% 使用 \pkg{ctex} 的 \cs{ctex\_patch\_cmd:Nnn} 命令。
+% \changes{v3.1.01}{2018/10/06}{取消依赖 \pkg{etoolbox}}
+%    \begin{macrocode}
+\newcommand\ustc@patchcmd{\csname ctex_patch_cmd:Nnn\endcsname}
+%    \end{macrocode}
+%
 % 页眉与该部分的章标题相同，宋体 10.5 磅（五号）居中。
-% \changes{v3.1.02}{2018/10/30}{取消依赖 \pkg{fancyhdr}}
+% 页码：宋体 10.5 磅、页面下脚居中。
+% \changes{v3.0}{2017/07/01}{页码居中}
+% \changes{v3.0.7}{2018/04/18}{更正页眉英文大写的错误}
 %    \begin{macrocode}
 \ifustc@graduate
-  \newcommand\ustc@header@font{\fontsize{10.5\bp@}{12\bp@}\selectfont}
+  \newcommand\ustc@hf@font{\fontsize{10.5\bp@}{12\bp@}\selectfont}
   \newcommand\ustc@header{\leftmark}
+  \ustc@patchcmd\chaptermark{\MakeUppercase}{}
+  \ustc@patchcmd\chaptermark{#1}{\ustc@spacetitle{#1}}
 %    \end{macrocode}
 %
 % 本科生要求除封面、扉页外，每面上部加页眉，
 % 用小 5 号字（9 bp）标注“中国科学技术大学本科毕业论文”，居中；
 % 从目录页开始在每面底部居中用小五宋体（9 bp）连续编页码。
-%    \begin{macrocode}
-\else
-  \newcommand\ustc@header@font{\fontsize{9\bp@}{12\bp@}\selectfont}
-  \newcommand\ustc@header{\ustc@universityname{}本科毕业论文}
-\fi
-\newcommand\ustc@head{%
-  \vbox to\headheight{%
-    \hfil\ustc@header@font\ustc@header\strut\hfil
-    \hrule\@height 0.4\p@\@width\textwidth
-    \vfil
-  }%
-}
-%    \end{macrocode}
-%
-% 页码：宋体 10.5 磅、页面下脚居中。
-% \changes{v3.0}{2017/07/01}{页码居中}
 % \changes{v3.0.2}{2018/03/16}{更正本科生的页码}
 %    \begin{macrocode}
-\newcommand\ustc@foot{\hfil\ustc@header@font\thepage\hfil}
+\else
+  \newcommand\ustc@hf@font{\fontsize{9\bp@}{12\bp@}\selectfont}
+  \newcommand\ustc@header{\ustc@universityname{}本科毕业论文}
+  \let\chaptermark\@gobble
+\fi
 %    \end{macrocode}
 %
 % 重定义默认的 |plain| page style，会显示页眉和页脚。
 %    \begin{macrocode}
-\def\ps@plain{%
-  \def\@oddhead{\ustc@head}%
-  \def\@oddfoot{\ustc@foot}%
-  \let\@evenhead\@oddhead
-  \let\@evenfoot\@oddfoot
-  \let\@mkboth\markboth
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyhead[C]{\ustc@hf@font\ustc@header}%
+  \fancyfoot[C]{\ustc@hf@font\thepage}%
 }
-%    \end{macrocode}
-% \pkg{ctex} v2.4.4 （2016/09/21）引入了 \cs{CTEXifname}。
-% \changes{v3.0.7}{2018/04/18}{更正页眉英文大写的错误}
-%    \begin{macrocode}
-\ifustc@graduate
-  \@ifclasslater{ctexbook}{2016/09/21}{
-    \def\chaptermark#1{%
-      \markboth{%
-        \CTEXifname{\CTEXthechapter\CTEX@chapter@aftername}{}%
-        \ustc@spacetitle{#1}%
-      }{}%
-    }
-  }{
-    \def\chaptermark#1{%
-      \markboth{%
-        \ifnum \c@secnumdepth >\m@ne
-          \if@mainmatter
-            \ifodd\CTEX@chapter@numbering
-              \CTEXthechapter\CTEX@chapter@aftername
-            \fi
-          \fi
-        \fi
-        \ustc@spacetitle{#1}%
-      }{}%
-    }
-  }
-\else
-  \let\chaptermark\@gobble
-\fi
-\let\sectionmark\@gobble
 \pagestyle{plain}
 %    \end{macrocode}
 %
 % |headings| 只有页眉，没有页脚，用于研究生的符号说明和本科生的 front matter。
 %    \begin{macrocode}
-\def\ps@headings{%
-  \def\@oddhead{\ustc@head}%
-  \let\@evenhead\@oddhead
-  \let\@oddfoot\@empty
-  \let\@evenfoot\@empty
-  \let\@mkboth\markboth
-}
+\fancypagestyle{headings}{\fancyfoot{}}
 %    \end{macrocode}
 %
 % 每章第一页默认会设置特殊的 page style，我们希望它不改变页眉页脚，
@@ -1363,7 +1324,7 @@ version 2005/12/01 or later.
 %    \end{macrocode}
 %
 % \begin{macro}{\ustc@pdfbookmark}
-% 添加 DFP 书签，在 \pkg{hyperref} 载入后才有效。
+% 添加 PDF 书签，在 \pkg{hyperref} 载入后才有效。
 %    \begin{macrocode}
 \newcommand\ustc@pdfbookmark{\@gobble}
 %    \end{macrocode}
@@ -2078,9 +2039,21 @@ version 2005/12/01 or later.
 %
 % \subsection{正文}
 %
+% \cs{sloppy} 可以减少“overfull boxes”。
+%    \begin{macrocode}
+\sloppy
+%    \end{macrocode}
+%
+% \changes{v3.1.04}{2019/03/21}{禁止扩大段间距。}
+% 禁止扩大段间距。（\href{https://github.com/ustctug/ustcthesis/issues/209}{
+%   ustctug/ustcthesis\#209}）
+%    \begin{macrocode}
+\raggedbottom
+%    \end{macrocode}
+%
 % 段间距 0 磅。
 %    \begin{macrocode}
-\setlength{\parskip}{0\p@ \@plus .2\p@}
+\setlength{\parskip}{\z@}
 %    \end{macrocode}
 %
 % 在 \opt{scheme=plain} 时也首段缩进。
@@ -2199,22 +2172,24 @@ version 2005/12/01 or later.
 % 用 \pkg{caption} 宏包设置图、表的格式
 % 注意计算 belowskip 必须用 \pkg{calc} 宏包修正。
 % \changes{v3.0}{2017/07/01}{图表的编号号、标题加粗}
+% \changes{v3.1.04}{2019/03/21}{修正图表标题与正文之间的距离}
 %    \begin{macrocode}
+\setlength{\floatsep}{6\bp@}
+\setlength{\textfloatsep}{6\bp@}
+\setlength{\intextsep}{6\bp@}
 \DeclareCaptionLabelSeparator{zhspace}{\hspace{\ccwd}}
 \captionsetup{
-  format   = hang,
-  font     = small,
-  labelsep = zhspace,
+  format         = hang,
+  font           = small,
+  labelsep       = zhspace,
+  skip           = 6\bp@,
+  figureposition = bottom,
+  tableposition  = top,
 }
 \ifustc@graduate
   \captionsetup{font+=bf}
 \fi
 \captionsetup[figure]{
-  aboveskip = 6\bp@,
-  belowskip = {12\bp@-\intextsep},
-}
-\captionsetup[table]{
-  aboveskip = 6\bp@,
   belowskip = 6\bp@,
 }
 %    \end{macrocode}
@@ -2369,12 +2344,6 @@ version 2005/12/01 or later.
 \fi
 %    \end{macrocode}
 %
-% 使用 \pkg{ctex} 的 \cs{ctex\_patch\_cmd:Nnn} 命令。
-% \changes{v3.1.01}{2018/10/06}{取消依赖 \pkg{etoolbox}}
-%    \begin{macrocode}
-\newcommand\ustc@patchcmd{\csname ctex_patch_cmd:Nnn\endcsname}
-%    \end{macrocode}
-%
 % \begin{macro}{\cite}
 % 下面修改引用标注的格式，主要是将页码写在上标位置。
 % Numerical 模式的 \cs{citet} 的页码：
@@ -2517,6 +2486,8 @@ version 2005/12/01 or later.
 % \subsubsection{\pkg{hyperref} 宏包}
 %
 % \changes{v3.1.02}{2018/10/30}{取消依赖 \pkg{hyperref}}
+% \changes{v3.1.06}{2019/05/01}{处理 \pkg{hyperref} 与 \pkg{unicode-math}
+%   的兼容性问题}
 %    \begin{macrocode}
 \ustc@atendpackage{hyperref}{
   \hypersetup{
@@ -2524,6 +2495,8 @@ version 2005/12/01 or later.
     bookmarksopen      = true,
     bookmarksopenlevel = 1,
     linktoc            = all,
+    unicode            = true,
+    psdextra           = true,
   }
 %    \end{macrocode}
 %
@@ -2575,6 +2548,16 @@ version 2005/12/01 or later.
   }
 %    \end{macrocode}
 %
+% \pkg{hyperref} 与 \pkg{unicode-math} 存在一些兼容性问题，见
+% \href{https://github.com/ustctug/ustcthesis/issues/223}{
+%   ustctug/ustcthesis\#223} 和
+% \href{https://github.com/ho-tex/hyperref/pull/90}{ho-tex/hyperref\#90}。
+%    \begin{macrocode}
+  \@ifpackagelater{hyperref}{2019/04/27}{}{%
+    \g@addto@macro\psdmapshortnames{\let\mu\textmugreek}%
+  }
+%    \end{macrocode}
+%
 % 设置中文的 \cs{autoref}。
 % \footnote{\url{https://tex.stackexchange.com/a/66150/82731}}
 %    \begin{macrocode}
@@ -2614,6 +2597,7 @@ version 2005/12/01 or later.
 %    \begin{macrocode}
   \ifustc@chinese
     \newcommand\ustc@assertionname{断言}
+    \newcommand\ustc@assumptionname{假设}
     \newcommand\ustc@axiomname{公理}
     \newcommand\ustc@corollaryname{推论}
     \newcommand\ustc@definitionname{定义}
@@ -2625,6 +2609,7 @@ version 2005/12/01 or later.
     \newcommand\ustc@theoremname{定理}
   \else
     \newcommand\ustc@assertionname{Assertion}
+    \newcommand\ustc@assumptionname{Assumption}
     \newcommand\ustc@axiomname{Axiom}
     \newcommand\ustc@corollaryname{Corollary}
     \newcommand\ustc@definitionname{Definition}
@@ -2635,15 +2620,16 @@ version 2005/12/01 or later.
     \newcommand\ustc@remarkname{Remark}
     \newcommand\ustc@theoremname{Theorem}
   \fi
-  \newtheorem{theorem}                {\ustc@theoremname}     [chapter]
-  \newtheorem{assertion}  [theorem]   {\ustc@assertionname}
-  \newtheorem{axiom}      [theorem]   {\ustc@axiomname}
-  \newtheorem{corollary}  [theorem]   {\ustc@corollaryname}
-  \newtheorem{lemma}      [theorem]   {\ustc@lemmaname}
-  \newtheorem{proposition}[theorem]   {\ustc@propositionname}
-  \newtheorem{definition}             {\ustc@definitionname}  [chapter]
-  \newtheorem{example}                {\ustc@examplename}     [chapter]
-  \newtheorem*{remark}                {\ustc@remarkname}
+  \newtheorem{theorem}             {\ustc@theoremname}    [chapter]
+  \newtheorem{assertion}  [theorem]{\ustc@assertionname}
+  \newtheorem{axiom}      [theorem]{\ustc@axiomname}
+  \newtheorem{corollary}  [theorem]{\ustc@corollaryname}
+  \newtheorem{lemma}      [theorem]{\ustc@lemmaname}
+  \newtheorem{proposition}[theorem]{\ustc@propositionname}
+  \newtheorem{assumption}          {\ustc@assumptionname} [chapter]
+  \newtheorem{definition}          {\ustc@definitionname} [chapter]
+  \newtheorem{example}             {\ustc@examplename}    [chapter]
+  \newtheorem*{remark}             {\ustc@remarkname}
 %    \end{macrocode}
 % \pkg{amsthm} 单独定义了 proof 环境，这里重新定义以满足格式要求。
 % 原本模仿 \pkg{amsthm} 写成 |\item[\hskip\labelsep\hskip2\ccwd #1\hskip\ccwd]|，
